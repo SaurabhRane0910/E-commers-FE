@@ -1,6 +1,6 @@
 
 
-.container[b-wqm60kqch9] {
+.container[b-cgyrcqjo9s] {
     position: absolute;
     top: 162px;
     left: 272px;
@@ -13,7 +13,7 @@
     overflow: hidden;
 }
 
-.login-section[b-wqm60kqch9] {
+.login-section[b-cgyrcqjo9s] {
     flex: 1 1 0;
     padding: 48px 32px;
     display: flex;
@@ -22,7 +22,7 @@
     background: #fff;
 }
 
-    .login-section h2[b-wqm60kqch9] {
+    .login-section h2[b-cgyrcqjo9s] {
         margin-bottom: 32px;
         font-size: 2rem;
         font-family: 'Archivo', sans-serif;
@@ -30,18 +30,18 @@
         letter-spacing: 0.03em;
     }
 
-.form-group[b-wqm60kqch9] {
+.form-group[b-cgyrcqjo9s] {
     margin-bottom: 16px;
 }
 
-    .form-group label[b-wqm60kqch9] {
+    .form-group label[b-cgyrcqjo9s] {
         display: block;
         margin-bottom: 4px;
         font-weight: 500;
         font-size: 1rem;
     }
 
-.form-control[b-wqm60kqch9] {
+.form-control[b-cgyrcqjo9s] {
     width: 100%;
     height: 40px;
     padding: 6px 12px;
@@ -50,7 +50,7 @@
     background: #f7f7f7;
 }
 
-.sign-in-btn[b-wqm60kqch9] {
+.sign-in-btn[b-cgyrcqjo9s] {
     width: 100%;
     background: #6366f1;
     color: #fff;
@@ -63,23 +63,23 @@
     transition: background 0.2s;
 }
 
-    .sign-in-btn:hover[b-wqm60kqch9] {
+    .sign-in-btn:hover[b-cgyrcqjo9s] {
         background: #4f46e5;
     }
 
-.extra-links[b-wqm60kqch9], .signup-link[b-wqm60kqch9] {
+.extra-links[b-cgyrcqjo9s], .signup-link[b-cgyrcqjo9s] {
     text-align: center;
     margin-top: 12px;
     font-size: 0.95rem;
 }
 
-    .extra-links a[b-wqm60kqch9],
-    .signup-link a[b-wqm60kqch9] {
+    .extra-links a[b-cgyrcqjo9s],
+    .signup-link a[b-cgyrcqjo9s] {
         color: #6366f1;
         text-decoration: none;
     }
 
-.image-section[b-wqm60kqch9] {
+.image-section[b-cgyrcqjo9s] {
     flex: 1 1 0;
     background: #f3f4f6;
     display: flex;
@@ -87,7 +87,7 @@
     justify-content: center;
 }
 
-    .image-section img[b-wqm60kqch9] {
+    .image-section img[b-cgyrcqjo9s] {
         width: 92%;
         border-radius: 8px;
         object-fit: cover;
