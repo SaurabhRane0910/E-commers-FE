@@ -1,0 +1,291 @@
+﻿@page "/signup"
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISignupService SignupService
+@inject NavigationManager NavigationManager
+
+<div class="signup-container">
+    <div class="signup-card">
+
+        <div class="signup-form">
+            <h2>Create an account</h2>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <EditForm Model="signupModel" OnValidSubmit="HandleSignup">
+                <DataAnnotationsValidator />
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <InputText @bind-Value="signupModel.Name" class="form-control" placeholder="Enter name" />
+                        <ValidationMessage For="@(() => signupModel.Name)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <InputText @bind-Value="signupModel.Email" type="email" class="form-control" placeholder="Enter email" />
+                        <ValidationMessage For="@(() => signupModel.Email)" />
+                    </div>
+                </div>
+
+             
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="signupModel.Password" type="password" class="form-control" placeholder="Enter password" />
+                        <ValidationMessage For="@(() => signupModel.Password)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <InputText @bind-Value="confirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                    </div>
+                </div>
+
+              
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <InputText @bind-Value="signupModel.Phone_Number" type="tel" class="form-control" placeholder="Enter phone number" />
+                        <ValidationMessage For="@(() => signupModel.Phone_Number)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <InputSelect @bind-Value="signupModel.Gender" class="form-control">
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => signupModel.Gender)" />
+                    </div>
+                </div>
+
+            
+                <div class="form-group">
+                    <label>Profile Image</label>
+                    <InputFile OnChange="HandleFileSelected" />
+                </div>
+
+                <h4>Address Details</h4>
+
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Country</label>
+                        <InputSelect @bind-Value="CountryId" class="form-control">
+                            <option value="">-- Select Country --</option>
+                            @foreach (var country in countries)
+                            {
+                                <option value="@country.Id">@country.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>State</label>
+                        <InputSelect @bind-Value="StateId" class="form-control" disabled="@(!states.Any())">
+                            <option value="">-- Select State --</option>
+                            @foreach (var state in states)
+                            {
+                                <option value="@state.Id">@state.StateName</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>City</label>
+                        <InputSelect @bind-Value="signupModel.Address.City_Id" class="form-control" disabled="@(!cities.Any())">
+                            <option value="">-- Select City --</option>
+                            @foreach (var city in cities)
+                            {
+                                <option value="@city.Id">@city.CityName</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Postal Code</label>
+                        <InputNumber @bind-Value="signupModel.Address.Postal_Code" class="form-control" />
+                    </div>
+                </div>
+
+             
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Address Type</label>
+                        <InputText @bind-Value="signupModel.Address.Label" class="form-control" placeholder="Home / Office" />
+                    </div>
+                    <div class="form-group">
+                        <label>Address Line 1</label>
+                        <InputText @bind-Value="signupModel.Address.Address_Line1" class="form-control" placeholder="Enter address line 1" />
+                    </div>
+                </div>
+
+          
+                <div class="form-group">
+                    <label>Address Line 2</label>
+                    <InputText @bind-Value="signupModel.Address.Address_Line2" class="form-control" placeholder="Enter address line 2" />
+                </div>
+
+             
+                <button type="submit" class="btn-submit">Sign up</button>
+            </EditForm>
+
+            <div class="mt-3 text-center">
+                Already have an account? <NavLink href="/login">Sign in</NavLink>
+            </div>
+        </div>
+
+        <div class="signup-image">
+            <img src="/bootstrap/signUpImage.jpg" alt="Signup illustration" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private SignupRequest signupModel = new() { Address = new AddressRequest() };
+    private string confirmPassword;
+    private IBrowserFile selectedFile;
+
+    private List<LocationModel> countries = new();
+    private List<StateModel> states = new();
+    private List<CityModel> cities = new();
+    private bool countriesLoaded = false;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            countries = await SignupService.GetCountriesAsync();
+            countriesLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error fetching countries: " + ex.Message;
+        }
+    }
+
+   
+    private int CountryId
+    {
+        get => signupModel.Address.Country_Id;
+        set
+        {
+            if (signupModel.Address.Country_Id != value)
+            {
+                signupModel.Address.Country_Id = value;
+                _ = LoadStatesAsync(value); 
+            }
+        }
+    }
+
+   
+    private int StateId
+    {
+        get => signupModel.Address.State_Id;
+        set
+        {
+            if (signupModel.Address.State_Id != value)
+            {
+                signupModel.Address.State_Id = value;
+                _ = LoadCitiesAsync(value);
+            }
+        }
+    }
+
+    private async Task LoadStatesAsync(int countryId)
+    {
+        try
+        {
+            states = await SignupService.GetStatesAsync(countryId);
+            cities.Clear();
+            signupModel.Address.State_Id = 0;
+            signupModel.Address.City_Id = 0;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error fetching states: " + ex.Message;
+            states.Clear();
+            cities.Clear();
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadCitiesAsync(int stateId)
+    {
+        try
+        {
+            cities = await SignupService.GetCitiesAsync(stateId);
+            signupModel.Address.City_Id = 0;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error fetching cities: " + ex.Message;
+            cities.Clear();
+        }
+        StateHasChanged();
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private async Task HandleSignup()
+    {
+        errorMessage = "";
+
+        if (signupModel.Password != confirmPassword)
+        {
+            errorMessage = "Passwords do not match!";
+            return;
+        }
+
+        try
+        {
+            
+            if (selectedFile != null)
+            {
+                using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10_000_000);
+
+                var uploadResponse = await SignupService.UploadFileAsync(
+                    stream,
+                    selectedFile.Name
+                );
+
+                if (uploadResponse.IsSuccessStatusCode)
+                {
+                    var results = await uploadResponse.Content.ReadAsStringAsync();
+                    signupModel.Profile_Image = results.Replace("\"", "");
+                }
+                else
+                {
+                    errorMessage = "File upload failed: " + await uploadResponse.Content.ReadAsStringAsync();
+                    return;
+                }
+            }
+
+
+
+            // Signup API
+            var result = await SignupService.RegisterUserAsync(signupModel);
+            if (result.StatusCode == 200)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error during signup: " + ex.Message;
+        }
+    }
+}
+
+
+

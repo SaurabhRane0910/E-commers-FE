@@ -1,21 +1,35 @@
 using blazornew.Components;
 using blazornew.Service;
+using blazornew.Service.IMP;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+    options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
+});
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
        .AddInteractiveServerComponents();
 
-// Register AuthService with HttpClient
+
+var apiBaseUrl = new Uri("https://ecomm-intern-demo.onrender.com/api/");
+
 builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
 {
-    client.BaseAddress = new Uri("https://ecomm-intern-demo.onrender.com/");
+    client.BaseAddress = apiBaseUrl;
 });
 
-// Register AuthenticationStateProvider
+builder.Services.AddHttpClient<ISignupService, SignupService>(client =>
+{
+    client.BaseAddress = apiBaseUrl;
+});
+
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
+
+builder.Services.AddLogging();
 
 var app = builder.Build();
 
@@ -25,6 +39,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

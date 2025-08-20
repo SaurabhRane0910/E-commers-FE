@@ -1,0 +1,111 @@
+﻿/* Container */
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f8f9fa;
+}
+
+/* Card */
+.signup-card {
+    display: flex;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    width: 1000px;
+    max-width: 95%;
+}
+
+.signup-form {
+    flex: 1;
+    padding: 40px;
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: auto;
+    scrollbar-color: #8b8b8b
+}
+
+    .signup-form h2 {
+        margin-bottom: 20px;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .signup-form h4 {
+        margin: 25px 0 15px;
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+/* Row Layout */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+
+
+
+        .form-group label::after {
+            content: "*";
+            color: red;
+            margin-left: 3px;
+        }
+/* Inputs */
+.form-control, input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+    .form-control:focus {
+        border-color: #6c63ff;
+        box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+    }
+
+/* Button */
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: #6c63ff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+    .btn-submit:hover {
+        background: #5a54e0;
+    }
+
+/* Image Side */
+.signup-image {
+    flex: 1;
+    background: #f0f0f0;
+}
+
+    .signup-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
