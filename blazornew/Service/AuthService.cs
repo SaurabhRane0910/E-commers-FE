@@ -14,7 +14,7 @@ namespace blazornew.Service
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-           
+
             try
             {
                 Console.WriteLine("console from the login");
