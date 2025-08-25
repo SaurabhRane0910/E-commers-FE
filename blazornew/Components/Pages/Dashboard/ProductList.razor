@@ -1,0 +1,337 @@
+﻿@page "/productsList"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject blazornew.Service.ToastService ToastService
+
+<div class="container mt-4">
+    @if (headingtext)
+    {
+        <h4 class="text-center mb-4 headingText">Featured Products</h4>
+    }
+
+    <!-- Alert -->
+    <div style="position:fixed; top:20px; right:20px; z-index:1050;">
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @alertClass alert-dismissible fade show" role="alert">
+                @alertMessage
+                <button type="button" class="btn-close" @onclick="() => alertMessage = null"></button>
+            </div>
+        }
+    </div>
+
+    <!-- Search & Sort -->
+    @if (ShowSearchSort)
+    {
+        <div class="d-flex justify-content-between mb-3">
+            <input type="text"
+                   class="form-control w-25"
+                   placeholder="Search products..."
+                   value="@searchText"
+                   @oninput="OnSearch" />
+
+            <select class="form-select form-select-sm w-auto" @onchange="OnSortOptionChanged">
+                <option value="id-asc" selected="@(sortKey=="id" && sortValue=="asc")">ID ↑</option>
+                <option value="id-desc" selected="@(sortKey=="id" && sortValue=="desc")">ID ↓</option>
+                <option value="name-asc" selected="@(sortKey=="name" && sortValue=="asc")">Name ↑</option>
+                <option value="name-desc" selected="@(sortKey=="name" && sortValue=="desc")">Name ↓</option>
+            </select>
+        </div>
+    }
+
+    <!-- Products -->
+    @if (products != null && products.Any())
+    {
+        <div class="row g-4">
+            @foreach (var product in products)
+            {
+                var variant = product.Variants.FirstOrDefault();
+                if (variant != null)
+                {
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="card h-100">
+                            <img src="@GetImageUrl(variant.Image?.ImagePath)"
+                                 class="card-img-top"
+                                 alt="@variant.ProductTitleName"
+                                 onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">@variant.ProductTitleName</h6>
+                                <p class="text-primary fw-bold">₹@variant.Price</p>
+
+                                <div class="mt-auto d-flex justify-content-between">
+                                    <button class="btn btn-primary btn-sm"
+                                            @onclick="async () => await AddToCart(product.Id, variant.Id)">
+                                        Add to Cart
+                                    </button>
+
+                                    @if (IsProductsPage)
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                @onclick="async () => await AddToWishlist(variant.Id)">
+                                            Add to Wishlist
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                @onclick="() => ShowProductDetails(product)">
+                                            View Details
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center">Loading...</p>
+    }
+</div>
+
+<!-- Product Details Modal -->
+@if (selectedProduct != null)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@selectedProduct.Name</h5>
+                    <button class="btn btn-danger btn-sm" @onclick="CloseModal">Back</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @foreach (var variant in selectedProduct.Variants)
+                        {
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card variant-card h-100">
+                                    <img src="@GetImageUrl(variant?.Image?.ImagePath)"
+                                         class="card-img-top"
+                                         alt="@variant?.ProductTitleName"
+                                         onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+                                    <div class="card-body d-flex flex-column">
+                                        <h6 class="card-title">@variant.ProductTitleName</h6>
+                                        <p>Color: @variant.Color</p>
+                                        <p class="text-primary fw-bold">₹@variant.Price</p>
+                                        <button class="btn btn-primary btn-sm mt-auto"
+                                                @onclick="() => AddToCart(selectedProduct.Id, variant.Id)">
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool ShowSearchSort { get; set; } = true;
+    [Parameter] public bool headingtext { get; set; } = true;
+    [Parameter] public bool IsProductsPage { get; set; } = true; // NEW
+
+    private List<Product> products = new();
+    private List<Product> allProducts = new();
+    private string alertMessage;
+    private string alertClass;
+    private Product selectedProduct;
+
+    private string sortKey = "id";
+    private string sortValue = "asc";
+    private string searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        try
+        {
+            var requestBody = new
+            {
+                page = 1,
+                pageSize = 50,
+                sortKey = sortKey,
+                sortValue = sortValue,
+                user_id = 10
+            };
+
+            var httpResponse = await Http.PostAsJsonAsync("products/listOfProducts", requestBody);
+
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var apiResponse = await httpResponse.Content.ReadFromJsonAsync<ApiResponse<ApiData>>();
+                allProducts = apiResponse?.Data?.Products ?? new List<Product>();
+                ApplyFilters();
+            }
+            else
+            {
+                ToastService.ShowError($"Failed to load products: {httpResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error loading products: {ex.Message}");
+        }
+    }
+
+    private void OnSearch(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? "";
+        ApplyFilters();
+    }
+
+    private void OnSortOptionChanged(ChangeEventArgs e)
+    {
+        var selected = e.Value?.ToString() ?? "id-asc";
+        var parts = selected.Split('-');
+        sortKey = parts[0];
+        sortValue = parts[1];
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<Product> query = allProducts;
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            query = query.Where(p =>
+                p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                p.Variants.Any(v => v.ProductTitleName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+
+        query = sortKey switch
+        {
+            "name" => (sortValue == "asc" ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name)),
+            "id" => (sortValue == "asc" ? query.OrderBy(p => p.Id) : query.OrderByDescending(p => p.Id)),
+            _ => query
+        };
+
+        products = query.ToList();
+        StateHasChanged();
+    }
+
+    private string GetImageUrl(string imageName)
+    {
+        if (string.IsNullOrWhiteSpace(imageName))
+            return "/bootstrap/lock.jpg";
+
+        return $"https://ecomm-intern-demo.onrender.com/uploads/{imageName}";
+    }
+
+    private async Task AddToCart(int productId, int variantId)
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                await ShowAlert("Please login to add items to cart.", "alert-warning");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var requestBody = new
+            {
+                cart_items = new[] { new { product_id = productId, product_variant_id = variantId, quantity = 1 } }
+            };
+
+            var response = await Http.PostAsJsonAsync("cart/addToCart", requestBody);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+                await ShowAlert(apiResponse?.Message ?? "Added to cart successfully!", "alert-primary");
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+                await ShowAlert(errorResponse?.Message ?? "Failed to add to cart.", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private async Task AddToWishlist(int variantId)
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                await ShowAlert("Please login to add items to wishlist.", "alert-warning");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var requestBody = new { product_variant_id = variantId };
+            var response = await Http.PostAsJsonAsync("wishlist/addToWishlist", requestBody);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+                await ShowAlert(apiResponse?.Message ?? "Wishlist added successfully!", "alert-success");
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+                await ShowAlert(errorResponse?.Message ?? "Failed to add wishlist.", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private async Task ShowAlert(string message, string cssClass = "alert-primary", int duration = 3000)
+    {
+        alertMessage = message;
+        alertClass = cssClass;
+        StateHasChanged();
+
+        await Task.Delay(duration);
+        alertMessage = null;
+        StateHasChanged();
+    }
+
+    private void ShowProductDetails(Product product) => selectedProduct = product;
+    private void CloseModal() => selectedProduct = null;
+
+    public class ApiData { public List<Product> Products { get; set; } }
+    public class Product { public int Id { get; set; } public string Name { get; set; } public List<Variant> Variants { get; set; } }
+    public class Variant
+    {
+        public int Id { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("product_title_name")]
+        public string ProductTitleName { get; set; }
+        public string Color { get; set; }
+        public decimal Price { get; set; }
+        public ProductImage Image { get; set; }
+    }
+    public class ProductImage
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("image_path")]
+        public string ImagePath { get; set; }
+    }
+    public class ApiResponse<T> { public string Status { get; set; } public string Message { get; set; } public T Data { get; set; } }
+}

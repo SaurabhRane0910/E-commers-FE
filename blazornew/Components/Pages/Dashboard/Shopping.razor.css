@@ -1,0 +1,35 @@
+﻿.full-center {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    text-align: center;
+    flex-direction: column; 
+    background-color: #ebebeb;
+    margin-top:56px;
+    padding-top:80px;
+    padding-bottom:80px;
+}
+
+
+.ShopNow button {
+
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+    .ShopNow button:hover {
+        background-color: #0b5ed7;
+    }
+
+
+.saleDesc p {
+    font-size: 18px;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+

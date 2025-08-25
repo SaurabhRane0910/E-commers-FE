@@ -1,0 +1,48 @@
+﻿@using blazornew.Model
+@using Microsoft.JSInterop
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<header class="header">
+    <!-- Logo -->
+    <div class="logoStart">
+        <a href="/" class="logo">
+            <img src="bootstrap/logo.png" alt="Logo" class="logo-img" />
+        </a>
+    </div>
+
+    <!-- Hamburger button (only visible on mobile) -->
+    <div class="hamburger" @onclick="ToggleMenu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Right Navigation -->
+    <div class="linkRight">
+        <div class="header-right @(isMenuOpen ? "active" : "")">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/products">Products</a>
+            <a href="/cart">Cart</a>
+            <a href="/wishlist">Wishlist</a>
+            <input type="text" class="search-box" placeholder="Search products..." />
+            <a href="/profile">Profile</a>
+            <a href="/login" class="logout">Back to login</a>
+        </div>
+    </div>
+</header>
+
+@code {
+    private bool isMenuOpen = false;
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

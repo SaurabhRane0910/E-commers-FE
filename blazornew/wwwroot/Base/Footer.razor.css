@@ -1,0 +1,150 @@
+﻿/* ---------- Responsive Footer (works on any screen) ---------- */
+
+/* Footer container */
+.footer .container {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+/* Footer links */
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+    .footer-links a {
+        margin: 0;
+        color: #333;
+        text-decoration: none;
+        font-weight: 500;
+        white-space: nowrap;
+        padding: 6px 4px;
+        transition: color .2s;
+    }
+
+        .footer-links a:hover,
+        .footer-links a:focus {
+            text-decoration: underline;
+            outline: none;
+        }
+
+/* Social icons */
+.footer-social {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+    .footer-social a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 6px;
+        color: #333;
+        text-decoration: none;
+        transition: transform .18s ease, color .18s ease, background .18s ease;
+        font-size: 18px;
+    }
+
+        .footer-social a:hover,
+        .footer-social a:focus {
+            transform: scale(1.12);
+            color: #0d6efd;
+            background: rgba(13,110,253,0.06);
+            outline: none;
+        }
+
+        /* Make sure icons remain clickable */
+        .footer-social a > * {
+            pointer-events: none;
+        }
+
+/* Optional: small print */
+.footer-small {
+    color: #666;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+/* ---------- Breakpoints ---------- */
+
+/* Medium (tablets) */
+@media (max-width: 992px) {
+    .footer-links {
+        gap: 14px;
+    }
+
+    .footer-social a {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
+}
+
+/* Small (mobiles) */
+@media (max-width: 768px) {
+    .footer .container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .footer-links {
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .footer-social {
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+        }
+
+    .footer-small {
+        text-align: left;
+    }
+}
+
+/* Extra small (phones) */
+@media (max-width: 480px) {
+    .footer {
+        padding: 10px 0;
+    }
+
+    .footer-links a {
+        font-size: 14px;
+    }
+
+    .footer-social a {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+}
+
+/* Smooth rendering */
+.footer, .header {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+    /* Accessibility */
+    .footer a:focus {
+        box-shadow: 0 0 0 3px rgba(74,74,255,0.12);
+        border-radius: 6px;
+    }

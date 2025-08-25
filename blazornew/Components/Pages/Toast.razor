@@ -1,0 +1,54 @@
+﻿@inject blazornew.Service.ToastService ToastService
+@implements IDisposable
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    @foreach (var toast in toasts)
+    {
+        <div class="toast align-items-center text-bg-@toast.Type border-0 show mb-2">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @toast.Message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        @onclick="() => RemoveToast(toast)"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ToastMessage> toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+    }
+
+    private async Task ShowToast(string type, string message)
+    {
+        var toast = new ToastMessage { Type = type, Message = message };
+        toasts.Add(toast);
+        StateHasChanged();
+
+        await Task.Delay(3000); // auto close after 3s
+        toasts.Remove(toast);
+        StateHasChanged();
+    }
+
+    private void RemoveToast(ToastMessage toast)
+    {
+        toasts.Remove(toast);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+    }
+
+    private class ToastMessage
+    {
+        public string Type { get; set; }
+        public string Message { get; set; }
+    }
+}

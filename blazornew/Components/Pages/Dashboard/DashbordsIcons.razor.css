@@ -1,0 +1,50 @@
+﻿.social-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* allows wrapping on small screens */
+    gap: 60px; /* default gap for desktops */
+}
+
+    .social-icons .social-icon {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s;
+    }
+
+        .social-icons .social-icon i {
+            font-size: 50px; /* big icons */
+        }
+
+        .social-icons .social-icon:hover {
+            transform: scale(1.2);
+        }
+
+/* Tablet screens */
+@media (max-width: 992px) {
+    .social-icons {
+        gap: 40px; /* smaller gap */
+    }
+
+        .social-icons .social-icon i {
+            font-size: 40px; /* shrink icons */
+        }
+}
+
+/* Mobile screens */
+@media (max-width: 576px) {
+    .social-icons {
+        gap: 25px; /* even smaller gap */
+    }
+
+        .social-icons .social-icon i {
+            font-size: 30px; /* smaller icons */
+        }
+}
+
+.container {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}

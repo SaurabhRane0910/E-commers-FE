@@ -3,6 +3,9 @@ using blazornew.Model.signup;
 using blazornew.Service.IMP;
 using System.Text.Json;
 using System.Text;
+using blazornew.Model;
+using static System.Net.WebRequestMethods;
+using blazornew.Model.EditProfile;
 
 namespace blazornew.Service
 {
@@ -136,7 +139,80 @@ namespace blazornew.Service
             return await _httpClient.PostAsync("fileUpload", content);
         }
 
+        public async Task<ApiResponse<object>> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync("updatePassword", request);
+            var raw = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+               
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(raw,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (response.IsSuccessStatusCode)
+                {
+                    apiResponse.Success = true;
+                    apiResponse.StatusCode = (int)response.StatusCode;
+                }
+                else
+                {
+                    apiResponse.Success = false;
+                    apiResponse.StatusCode = (int)response.StatusCode;
+                }
+
+                return apiResponse!;
+            }
+            catch
+            {
+                
+                return new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = raw,
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+        }
+
+
+        public async Task<ApiResponse<object>> UpdateProfileAsync(UpdateProfileRequest request)
+        {
+            var response = await _httpClient.PutAsJsonAsync("updateProfile", request);
+            var raw = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(raw,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (response.IsSuccessStatusCode)
+                {
+                    apiResponse.Success = true;
+                    apiResponse.StatusCode = (int)response.StatusCode;
+                }
+                else
+                {
+                    apiResponse.Success = false;
+                    apiResponse.StatusCode = (int)response.StatusCode;
+                }
+
+                return apiResponse!;
+            }
+            catch
+            {
+                return new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = raw,
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+        }
 
 
     }
+
 }
+
+

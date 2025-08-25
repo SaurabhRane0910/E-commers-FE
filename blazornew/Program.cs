@@ -1,3 +1,4 @@
+
 using blazornew.Components;
 using blazornew.Service;
 using blazornew.Service.IMP;
@@ -25,11 +26,15 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
 builder.Services.AddHttpClient<ISignupService, SignupService>(client =>
 {
     client.BaseAddress = apiBaseUrl;
+}); 
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = apiBaseUrl
 });
-
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
 
 builder.Services.AddLogging();
+builder.Services.AddSingleton<ToastService>();
 
 var app = builder.Build();
 

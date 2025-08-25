@@ -1,0 +1,59 @@
+﻿@inject HttpClient Http
+
+<div class="container mt-4">
+    <h4 class="text-center mb-4 headingText">Shop by Category</h4>
+
+    @if (categories != null && categories.Any())
+    {
+        <div class="category-scroll">
+            @foreach (var cat in categories)
+            {
+                <div class="category-card">
+                    <img src="@GetImageUrl(cat.CategoryImage)"
+                         alt="@cat.CategoryName"
+                         onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+                    <div class="category-title">@cat.CategoryName</div>
+                </div>
+
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center">Loading...</p>
+    }
+</div>
+
+@code {
+    private List<Category> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var requestBody = new { };
+        var httpResponse = await Http.PostAsJsonAsync("category/listOfCategories", requestBody);
+        httpResponse.EnsureSuccessStatusCode();
+
+        var apiResponse = await httpResponse.Content.ReadFromJsonAsync<ApiResponse>();
+        categories = apiResponse?.Data?.Categories ?? new List<Category>();
+    }
+
+    private string GetImageUrl(string imageName)
+    {
+        if (string.IsNullOrEmpty(imageName))
+            return "/bootstrap/lock.jpg";
+
+        return $"https://ecomm-intern-demo.onrender.com/uploads/{imageName}";
+    }
+
+    public class ApiResponse
+    {
+        public ApiData Data { get; set; }
+    }
+
+    public class ApiData
+    {
+        public List<Category> Categories { get; set; }
+    }
+
+   
+}
