@@ -2,9 +2,9 @@ name: Blazor CI
 
 on:
   push:
-    branches: [ "main","sr_cart"]
+    branches: [ "main", "sr_cart" ]
   pull_request:
-    branches: [ "main","sr_cart" ]
+    branches: [ "main", "sr_cart" ]
 
 jobs:
   build:
@@ -17,17 +17,16 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x  # or 8.0.x if using .NET 8
+        dotnet-version: 8.0.x
 
     - name: Restore dependencies
-      run: dotnet restore "C:\Users\admin\source\repos\blazornew\blazornew.sln"
+      run: dotnet restore "C:/Users/admin/source/repos/blazornew/blazornew.sln"
 
     - name: Build solution
-      run: dotnet build "C:\Users\admin\source\repos\blazornew\blazornew.sln" --configuration Release --no-restore
+      run: dotnet build "C:/Users/admin/source/repos/blazornew/blazornew.sln" --configuration Release --no-restore
 
     - name: Build project (optional)
-      run: dotnet build "C:\Users\admin\source\repos\blazornew\blazornew\blazornew.csproj" --configuration Release --no-restore
+      run: dotnet build "C:/Users/admin/source/repos/blazornew/blazornew/blazornew.csproj" --configuration Release --no-restore
 
     - name: Run Tests (if any)
-      run: dotnet test "C:\Users\admin\source\repos\blazornew\blazornew.sln" --no-restore --verbosity normal
-
+      run: dotnet test "C:/Users/admin/source/repos/blazornew/blazornew.sln" --no-restore --verbosity normal
