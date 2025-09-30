@@ -1,15 +1,18 @@
-﻿@page "/productsList"
+﻿
+
+@page "/productsList"
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject blazornew.Service.ToastService ToastService
 
 <div class="container mt-4">
+
     @if (headingtext)
     {
         <h4 class="text-center mb-4 headingText">Featured Products</h4>
     }
 
-    <!-- Alert -->
+    <!-- Alerts -->
     <div style="position:fixed; top:20px; right:20px; z-index:1050;">
         @if (!string.IsNullOrEmpty(alertMessage))
         {
@@ -45,18 +48,19 @@
         <div class="row g-4">
             @foreach (var product in products)
             {
-                var variant = product.Variants.FirstOrDefault();
+                var variant = GetFirstVariant(product);
                 if (variant != null)
                 {
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                         <div class="card h-100">
-                            <img src="@GetImageUrl(variant.Image?.ImagePath)"
+
+                            <img src="@GetFinalImageUrl(product)"
                                  class="card-img-top"
-                                 alt="@variant.ProductTitleName"
-                                 onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+                                 alt="@product.Name"
+                                 @onerror="() => SetProductImageError(product.Id)" />
 
                             <div class="card-body d-flex flex-column">
-                                <h6 class="card-title">@variant.ProductTitleName</h6>
+                                <h6 class="card-title">@product.Name</h6>
                                 <p class="text-primary fw-bold">₹@variant.Price</p>
 
                                 <div class="mt-auto d-flex justify-content-between">
@@ -109,10 +113,11 @@
                         {
                             <div class="col-12 col-md-6 mb-3">
                                 <div class="card variant-card h-100">
-                                    <img src="@GetImageUrl(variant?.Image?.ImagePath)"
+                                    <img src="@GetFinalImageUrl(selectedProduct, variant)"
                                          class="card-img-top"
                                          alt="@variant?.ProductTitleName"
-                                         onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+                                         @onerror="() => SetProductImageError(selectedProduct.Id)" />
+
                                     <div class="card-body d-flex flex-column">
                                         <h6 class="card-title">@variant.ProductTitleName</h6>
                                         <p>Color: @variant.Color</p>
@@ -135,7 +140,7 @@
 @code {
     [Parameter] public bool ShowSearchSort { get; set; } = true;
     [Parameter] public bool headingtext { get; set; } = true;
-    [Parameter] public bool IsProductsPage { get; set; } = true; // NEW
+    [Parameter] public bool IsProductsPage { get; set; } = true;
 
     private List<Product> products = new();
     private List<Product> allProducts = new();
@@ -146,6 +151,9 @@
     private string sortKey = "id";
     private string sortValue = "asc";
     private string searchText = "";
+
+    // Track error by product
+    private HashSet<int> ProductImageError = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,6 +228,37 @@
 
         products = query.ToList();
         StateHasChanged();
+    }
+
+    private void SetProductImageError(int productId)
+    {
+        if (!ProductImageError.Contains(productId))
+        {
+            ProductImageError.Add(productId);
+            StateHasChanged();
+        }
+    }
+
+    private Variant GetFirstVariant(Product product)
+    {
+        return product?.Variants?.FirstOrDefault();
+    }
+
+    private string GetFinalImageUrl(Product product, Variant variant = null)
+    {
+        if (product == null) return "/bootstrap/lock.jpg";
+
+        if (ProductImageError.Contains(product.Id))
+            return "/bootstrap/lock.jpg";
+
+        var v = variant ??
+                product.Variants?.FirstOrDefault(v => !string.IsNullOrEmpty(v.Image?.ImagePath)) ??
+                product.Variants?.FirstOrDefault();
+
+        if (v?.Image != null && !string.IsNullOrWhiteSpace(v.Image.ImagePath))
+            return GetImageUrl(v.Image.ImagePath);
+
+        return "/bootstrap/lock.jpg";
     }
 
     private string GetImageUrl(string imageName)
@@ -335,3 +374,4 @@
     }
     public class ApiResponse<T> { public string Status { get; set; } public string Message { get; set; } public T Data { get; set; } }
 }
+    

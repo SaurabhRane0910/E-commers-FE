@@ -49,3 +49,26 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; 
+}
+
+
+.page, .content {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* If Layout uses 'main' */
+main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}

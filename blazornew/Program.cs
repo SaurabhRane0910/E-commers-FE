@@ -35,6 +35,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
 
 builder.Services.AddLogging();
 builder.Services.AddSingleton<ToastService>();
+builder.Services.AddScoped<PaymentService>();
 
 var app = builder.Build();
 

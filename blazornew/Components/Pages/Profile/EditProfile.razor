@@ -1,0 +1,430 @@
+﻿@page "/editprofile"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject ILogger<EditProfile> Logger
+@inject ISignupService SignupService
+<Header />
+
+<div class="container d-flex justify-content-center mt-5">
+    <div class="card shadow-lg p-4" style="max-width: 700px; width: 100%;">
+        <div class="card-body">
+            <h3 class="text-center mb-4">Edit Profile</h3>
+
+            @if (isLoading)
+            {
+                <p class="text-center">Loading...</p>
+            }
+            else if (loadFailed)
+            {
+                <p class="text-danger text-center">Failed to load profile data.</p>
+            }
+            else
+            {
+                <EditForm Model="user" OnValidSubmit="SaveProfile">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label>Name</label>
+                        <InputText class="form-control" @bind-Value="user.Name" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Phone Number</label>
+                        <InputText class="form-control" @bind-Value="user.PhoneNumber" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Gender</label>
+                        <InputSelect class="form-select" @bind-Value="user.Gender">
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Profile Image</label>
+                        <InputText class="form-control" @bind-Value="user.ProfileImage" placeholder="avatar.jpg" />
+                    </div>
+
+                    <h5 class="mt-4">Address</h5>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label>Country</label>
+                            <InputSelect @bind-Value="CountryId" class="form-control">
+                                <option value="">-- Select Country --</option>
+                                @foreach (var country in countries)
+                                {
+                                    <option value="@country.Id">@country.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label>State</label>
+                            <InputSelect @bind-Value="StateId" class="form-control" disabled="@(!states.Any())">
+                                <option value="">-- Select State --</option>
+                                @foreach (var state in states)
+                                {
+                                    <option value="@state.Id">@state.StateName</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label>City</label>
+                            <InputSelect @bind-Value="user.Address.CityId" class="form-control" disabled="@(!cities.Any())">
+                                <option value="">-- Select City --</option>
+                                @foreach (var city in cities)
+                                {
+                                    <option value="@city.Id">@city.CityName</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Postal Code</label>
+                            <InputNumber class="form-control" @bind-Value="user.Address.PostalCode" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Address Line 1</label>
+                            <InputText class="form-control" @bind-Value="user.Address.AddressLine1" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Address Line 2</label>
+                        <InputText class="form-control" @bind-Value="user.Address.AddressLine2" />
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary px-4">Update Profile</button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+<Footer />
+@code {
+
+
+    private void GoToDashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+    
+    private bool isLoading = true;
+    private bool loadFailed = false;
+    private UserProfile user = new();
+
+    private List<LocationModel> countries = new();
+    private List<StateModel> states = new();
+    private List<CityModel> cities = new();
+
+    private int CountryId
+    {
+        get => user.Address.CountryId;
+        set
+        {
+            if (user.Address.CountryId != value)
+            {
+                user.Address.CountryId = value;
+                _ = LoadStatesAsync(value);
+            }
+        }
+    }
+
+    private int StateId
+    {
+        get => user.Address.StateId;
+        set
+        {
+            if (user.Address.StateId != value)
+            {
+                user.Address.StateId = value;
+                _ = LoadCitiesAsync(value);
+            }
+        }
+    }
+
+    private string? token;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+          
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                loadFailed = true;
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Load countries first
+            countries = await SignupService.GetCountriesAsync();
+
+            var profileResponse = await Http.GetFromJsonAsync<ApiResponse<UserProfileDto>>(
+                "https://ecomm-intern-demo.onrender.com/api/viewProfile"
+            );
+
+            if (profileResponse?.StatusCode == 200)
+            {
+                MapDtoToUser(profileResponse.Data);
+
+               
+                if (user.Address.CountryId > 0)
+                {
+                    states = await SignupService.GetStatesAsync(user.Address.CountryId);
+                }
+                if (user.Address.StateId > 0)
+                {
+                    cities = await SignupService.GetCitiesAsync(user.Address.StateId);
+                }
+            }
+            else
+            {
+                Logger.LogError("Failed to load profile: {@Response}", profileResponse);
+                loadFailed = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading profile data.");
+            loadFailed = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStatesAsync(int countryId)
+    {
+        try
+        {
+            states = await SignupService.GetStatesAsync(countryId);
+            cities.Clear();
+            user.Address.StateId = 0;
+            user.Address.CityId = 0;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error fetching states");
+            states.Clear();
+            cities.Clear();
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadCitiesAsync(int stateId)
+    {
+        try
+        {
+            cities = await SignupService.GetCitiesAsync(stateId);
+            user.Address.CityId = 0;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error fetching cities");
+            cities.Clear();
+        }
+        StateHasChanged();
+    }
+
+    private async Task SaveProfile()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                await ShowSweetAlert("Unauthorized", "Please login first.", "warning");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var updateRequest = new UpdateProfileRequest
+                {
+                    Name = user.Name,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    ProfileImage = user.ProfileImage ?? "",
+                    Address = new AddressUpdate
+                    {
+                        CountryId = user.Address.CountryId,
+                        StateId = user.Address.StateId,
+                        CityId = user.Address.CityId,
+                        PostalCode = user.Address.PostalCode,
+                        Label = "home",
+                        AddressLine1 = user.Address.AddressLine1,
+                        AddressLine2 = user.Address.AddressLine2
+                    }
+                };
+
+            Logger.LogInformation("Sending update request: {@UpdateRequest}", updateRequest);
+
+            var response = await Http.PutAsJsonAsync("https://ecomm-intern-demo.onrender.com/api/updateProfile", updateRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Show SweetAlert and wait for confirmation before redirecting
+                await JS.InvokeVoidAsync("Swal.fire", new
+                {
+                    title = "Success",
+                    text = "Profile updated successfully!",
+                    icon = "success",
+                    confirmButtonText = "Go to Dashboard"
+                });
+
+                // Navigate after alert confirmation
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Logger.LogError("Failed to update profile. Status: {Status}, Response: {Response}", response.StatusCode, errorContent);
+
+                await ShowSweetAlert("Error", "Failed to update profile.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception while updating profile.");
+            await ShowSweetAlert("Error", $"Something went wrong: {ex.Message}", "error");
+        }
+    }
+
+    private async Task ShowSweetAlert(string title, string message, string icon)
+    {
+        await JS.InvokeVoidAsync("Swal.fire", new
+        {
+            title,
+            text = message,
+            icon,
+            confirmButtonText = "OK"
+        });
+    }
+
+    private void MapDtoToUser(UserProfileDto dto)
+    {
+        user.Name = dto.Name;
+        user.PhoneNumber = dto.PhoneNumber;
+        user.Gender = dto.Gender;
+        user.ProfileImage = dto.ProfileImage;
+        user.Address = new AddressData
+        {
+            CountryId = dto.Address?.CountryId ?? 0,
+            StateId = dto.Address?.StateId ?? 0,
+            CityId = dto.Address?.CityId ?? 0,
+            PostalCode = dto.Address?.PostalCode ?? 0,
+            AddressLine1 = dto.Address?.AddressLine1,
+            AddressLine2 = dto.Address?.AddressLine2
+        };
+    }
+
+    // ===================== MODELS =====================
+    private class UserProfile
+    {
+        public string Name { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Gender { get; set; }
+        public string ProfileImage { get; set; }
+        public AddressData Address { get; set; } = new();
+    }
+
+    private class AddressData
+    {
+        public int CountryId { get; set; }
+        public int StateId { get; set; }
+        public int CityId { get; set; }
+        public int PostalCode { get; set; }
+        public string AddressLine1 { get; set; }
+        public string AddressLine2 { get; set; }
+    }
+
+    private class ApiResponse<T>
+    {
+        public int StatusCode { get; set; }
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public T Data { get; set; }
+    }
+
+    private class UserProfileDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Gender { get; set; }
+        public string ProfileImage { get; set; }
+        public AddressUpdate Address { get; set; }
+    }
+
+    private class UpdateProfileRequest
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("phone_number")]
+        public string PhoneNumber { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("gender")]
+        public string Gender { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("profile_image")]
+        public string ProfileImage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("address")]
+        public AddressUpdate Address { get; set; }
+    }
+
+    private class AddressUpdate
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("country_id")]
+        public int CountryId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("state_id")]
+        public int StateId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("city_id")]
+        public int CityId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("postal_code")]
+        public int PostalCode { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("label")]
+        public string Label { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("address_line1")]
+        public string AddressLine1 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("address_line2")]
+        public string AddressLine2 { get; set; }
+    }
+
+   
+}

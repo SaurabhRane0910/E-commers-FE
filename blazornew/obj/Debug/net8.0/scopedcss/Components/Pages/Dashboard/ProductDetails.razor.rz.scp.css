@@ -1,0 +1,52 @@
+
+.fixed-alert-container[b-haa0ru8f3y] {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+
+.variant-item[b-haa0ru8f3y] {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .variant-item:hover[b-haa0ru8f3y] {
+        transform: translateY(-3px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+
+.alert-primary[b-haa0ru8f3y] {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+}
+
+.alert-warning[b-haa0ru8f3y] {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+}
+
+.alert-danger[b-haa0ru8f3y] {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+
+.card-img-top[b-haa0ru8f3y] {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+
+.btn-close[b-haa0ru8f3y] {
+    filter: invert(1); 
+}

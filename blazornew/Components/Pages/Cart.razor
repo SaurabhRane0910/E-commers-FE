@@ -1,0 +1,334 @@
+﻿ @page "/cart"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject ILogger<Cart> Logger
+@inject NavigationManager Navigation
+<Header />
+
+<div class="container mt-4">
+
+    <div style="position:fixed; top:20px; right:20px; z-index:1050;">
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @alertClass alert-dismissible fade show" role="alert">
+                @alertMessage
+                <button type="button" class="btn-close" @onclick="() => alertMessage = null"></button>
+            </div>
+        }
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-8">
+            <h4 class="mb-3">Shopping Cart (@(cart?.cart_items?.Count ?? 0) items)</h4>
+
+            @if (isLoading)
+            {
+                <p>Loading...</p>
+            }
+            else if (cart?.cart_items == null || !cart.cart_items.Any())
+            {
+                <div class="alert alert-info">Your cart is empty.</div>
+            }
+            else
+            {
+                @foreach (var item in cart.cart_items)
+                {
+                    <div class="card mb-3 shadow-sm">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-3 p-2">
+                                <img src="@GetImageUrl(item.productVariant?.image?.image_path)"
+                                     class="img-fluid rounded-start"
+                                     alt="@item.productVariant?.product_title_name"
+                                     onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-1">@item.productVariant?.product_title_name</h6>
+                                    <small class="text-muted">@item.productVariant?.color | @item.productVariant?.size</small>
+                                    <p class="mb-1">@item.productVariant?.description</p>
+                                    <strong>₹@item.productVariant?.price</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                            @onclick="() => UpdateQuantity(item, item.quantity - 1)"
+                                            disabled="@(item.quantity <= 1)">
+                                        -
+                                    </button>
+                                    <span class="mx-2">@item.quantity</span>
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                            @onclick="() => UpdateQuantity(item, item.quantity + 1)">
+                                        +
+                                    </button>
+                                </div>
+
+                                <button class="btn btn-danger btn-sm"
+                                        @onclick="() => RemoveItem(item)">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal</span>
+                        <span>₹@Subtotal().ToString("0.00")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Estimated Tax (8%)</span>
+                        <span>₹@Tax().ToString("0.00")</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total</span>
+                        <span>₹@Total().ToString("0.00")</span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-3"
+                            @onclick="GoToCheckout">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<Footer />
+
+@code {
+    private CartResponse? cart;
+    private bool isLoading = true;
+    private string alertMessage;
+    private string alertClass;
+
+    private void GoToCheckout()
+    {
+        Navigation.NavigateTo("/checkout");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("Cart page initialized, loading cart...");
+        await LoadCart();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Logger.LogInformation("Cart page first render, loading cart...");
+            await LoadCart();
+        }
+    }
+
+
+    private async Task<bool> AttachTokenOrWarn()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Logger.LogWarning("No auth token found in localStorage.");
+            await ShowAlert("Please login to view your cart.", "alert-warning");
+            return false;
+        }
+
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        Logger.LogInformation("Auth token attached to HttpClient.");
+        return true;
+    }
+
+    private async Task LoadCart()
+    {
+        try
+        {
+            if (!await AttachTokenOrWarn()) return;
+
+            var response = await Http.GetAsync("cart/viewCart");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<CartResponse>>();
+                cart = apiResponse?.Data;
+            }
+            else
+            {
+                cart = null;
+                var err = await response.Content.ReadAsStringAsync();
+                Logger.LogWarning("Failed to load cart: {Err}", err);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading cart");
+            cart = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateQuantity(CartItem item, int newQuantity)
+    {
+        if (newQuantity < 1) return;
+
+        try
+        {
+            if (!await AttachTokenOrWarn()) return;
+
+            Logger.LogInformation("Updating quantity for ItemId {ItemId}: {OldQty} -> {NewQty}", item.id, item.quantity, newQuantity);
+
+            var body = new
+            {
+                cart_items = new[]
+                {
+                    new {
+                        product_id = item.product_id,
+                        product_variant_id = item.product_variant_id,
+                        quantity = newQuantity
+                    }
+                }
+            };
+
+            var res = await Http.PostAsJsonAsync("cart/addToCart", body);
+            if (res.IsSuccessStatusCode)
+            {
+                Logger.LogInformation("Quantity updated successfully.");
+                await LoadCart();
+            }
+            else
+            {
+                var errText = await res.Content.ReadAsStringAsync();
+                Logger.LogWarning("Failed to update quantity: {Err}", errText);
+                await ShowAlert("Failed to update quantity.", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating quantity for ItemId {ItemId}", item.id);
+            await ShowAlert($"Error updating quantity: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private async Task RemoveItem(CartItem item)
+    {
+        try
+        {
+            if (!await AttachTokenOrWarn()) return;
+
+            Logger.LogInformation("Removing item with Id {ItemId}", item.id);
+            var res = await Http.DeleteAsync($"cart/deleteCart/{item.id}");
+            if (res.IsSuccessStatusCode)
+            {
+                Logger.LogInformation("Item {ItemId} removed successfully.", item.id);
+                await LoadCart();
+                await ShowAlert("Item removed successfully", "alert-primary");
+            }
+            else
+            {
+                var errText = await res.Content.ReadAsStringAsync();
+                Logger.LogWarning("Failed to remove item {ItemId}: {Err}", item.id, errText);
+                await ShowAlert("Failed to remove item.", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error removing item {ItemId}", item.id);
+            await ShowAlert($"Error removing item: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private string GetImageUrl(string imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+            return "/bootstrap/lock.jpg";
+        return $"https://ecomm-intern-demo.onrender.com/uploads/{imagePath}";
+    }
+
+    private decimal Subtotal()
+        => cart?.cart_items?.Sum(i => (decimal)(i.productVariant?.price ?? 0) * i.quantity) ?? 0;
+
+    private decimal Tax() => Math.Round(Subtotal() * 0.08m, 2);
+    private decimal Total() => Subtotal() + Tax();
+
+    private async Task ShowAlert(string message, string cssClass = "alert-primary", int duration = 3000)
+    {
+        alertMessage = message;
+        alertClass = cssClass;
+        StateHasChanged();
+        Logger.LogInformation("Showing alert: {Message}", message);
+        await Task.Delay(duration);
+        alertMessage = null;
+        StateHasChanged();
+    }
+
+    private static async Task<T?> SafeRead<T>(HttpResponseMessage res)
+    {
+        try { return await res.Content.ReadFromJsonAsync<T>(); } catch { return default; }
+    }
+
+    public class CartResponse
+    {
+        public int id { get; set; }
+        public int user_id { get; set; }
+        public int total_quantity { get; set; }
+        public decimal sub_total { get; set; }
+        public decimal total_price { get; set; }
+        public List<CartItem> cart_items { get; set; } = new();
+    }
+
+    public class CartItem
+    {
+        public int id { get; set; }
+        public int product_id { get; set; }
+        public int product_variant_id { get; set; }
+        public int cart_id { get; set; }
+        public int quantity { get; set; }
+        public decimal price_total { get; set; }
+        public ProductVariant productVariant { get; set; }
+        public ProductData productData { get; set; }
+    }
+
+    public class ProductVariant
+    {
+        public string product_title_name { get; set; }
+        public int product_id { get; set; }
+        public string description { get; set; }
+        public string color { get; set; }
+        public string size { get; set; }
+        public decimal price { get; set; }
+        public ProductImage image { get; set; }
+    }
+
+    public class ProductData
+    {
+        public string name { get; set; }
+    }
+
+    public class ProductImage
+    {
+        public int id { get; set; }
+        public string image_path { get; set; }
+    }
+
+    public class ApiResponse<T>
+    {
+        public int StatusCode { get; set; }
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public T Data { get; set; }
+    }
+}

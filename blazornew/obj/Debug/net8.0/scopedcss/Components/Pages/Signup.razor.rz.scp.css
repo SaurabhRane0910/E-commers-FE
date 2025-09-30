@@ -1,0 +1,111 @@
+/* Container */
+.signup-container[b-6y2l7yr5c0] {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f8f9fa;
+}
+
+/* Card */
+.signup-card[b-6y2l7yr5c0] {
+    display: flex;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    width: 1000px;
+    max-width: 95%;
+}
+
+.signup-form[b-6y2l7yr5c0] {
+    flex: 1;
+    padding: 40px;
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: auto;
+    scrollbar-color: #8b8b8b
+}
+
+    .signup-form h2[b-6y2l7yr5c0] {
+        margin-bottom: 20px;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .signup-form h4[b-6y2l7yr5c0] {
+        margin: 25px 0 15px;
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+/* Row Layout */
+.form-row[b-6y2l7yr5c0] {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group[b-6y2l7yr5c0] {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+    .form-group label[b-6y2l7yr5c0] {
+        font-size: 14px;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+
+
+
+        .form-group label[b-6y2l7yr5c0]::after {
+            content: "*";
+            color: red;
+            margin-left: 3px;
+        }
+/* Inputs */
+.form-control[b-6y2l7yr5c0], input[type="file"][b-6y2l7yr5c0] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+    .form-control:focus[b-6y2l7yr5c0] {
+        border-color: #6c63ff;
+        box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+    }
+
+/* Button */
+.btn-submit[b-6y2l7yr5c0] {
+    width: 100%;
+    padding: 12px;
+    background: #6c63ff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+    .btn-submit:hover[b-6y2l7yr5c0] {
+        background: #5a54e0;
+    }
+
+/* Image Side */
+.signup-image[b-6y2l7yr5c0] {
+    flex: 1;
+    background: #f0f0f0;
+}
+
+    .signup-image img[b-6y2l7yr5c0] {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }

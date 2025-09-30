@@ -1,0 +1,274 @@
+﻿@page "/profile"
+@inject IJSRuntime JS
+@inject HttpClient Http
+ @using System.Text.Json.Serialization;
+
+@inject NavigationManager Navigation
+<Header />
+<div class="container py-4">
+    <div class="row">
+
+       
+        <!-- Left panel: User info -->
+        <div class="col-md-4 bg-white rounded p-4 shadow-sm">
+            <div class="text-center mb-4">
+                <img src="@ProfileImageUrl" class="rounded-circle" style="width: 120px; height: 120px;" alt="User profile" />
+            </div>
+
+            <EditForm Model="user" OnValidSubmit="SaveProfile">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="user.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <InputText type="email" class="form-control" @bind-Value="user.Email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <InputText class="form-control" @bind-Value="user.Phone" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Shipping Address</label>
+                    <InputText class="form-control" @bind-Value="user.AddressLine1" placeholder="123 Commerce St" />
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <InputText class="form-control" @bind-Value="user.City" placeholder="Shopville" />
+                    </div>
+                    <div class="col-6">
+                        <InputText class="form-control" @bind-Value="user.State" placeholder="CA" />
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <InputText class="form-control" @bind-Value="user.ZipCode" placeholder="90210" />
+                    </div>
+                    <div class="col-6">
+                        <InputText class="form-control" @bind-Value="user.Country" placeholder="USA" />
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-outline-primary mt-3 w-100" @onclick="GoToChangePassword">
+                    <i class="bi bi-lock me-2"></i> Change Password
+                </button>
+
+
+                <button type="submit" class="btn btn-outline-primary mt-3 w-100" @onclick="GoToEdit">
+                    <i class="bi bi-lock me-2"></i> Edit Profile
+                </button>
+            </EditForm>
+        </div>
+
+        <div class="col-md-8">
+            <h5>Recent Orders</h5>
+            @if (orders.Count == 0)
+            {
+                <div class="alert alert-info">No orders found.</div>
+            }
+            else
+            {
+                @foreach (var order in orders)
+                {
+                    <div class="card mb-3 shadow-sm rounded">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <div><strong>@order.OrderNumber</strong></div>
+                                <div class="text-muted small">Date: @order.OrderDate.ToString("yyyy-MM-dd")</div>
+                                <div><strong>Total: </strong>$@order.Total.ToString("F2")</div>
+                            </div>
+                            <div>
+                                <span class="badge bg-@GetStatusColor(order.Status)">
+                                    @order.Status
+                                </span>
+                                <i class="bi bi-chevron-right ms-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+<Footer />
+@code {
+    private User user = new();
+    private string ProfileImageUrl = "";
+    private List<Order> orders = new();
+
+    private void GoToEdit() => Navigation.NavigateTo("/editprofile");
+    private void GoToChangePassword() => Navigation.NavigateTo("/change-password");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        if (string.IsNullOrEmpty(token))
+        {
+            await ShowAlert("Please login to view your profile.", "alert-warning");
+            return;
+        }
+
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        try
+        {
+            // ✅ Get Profile
+            var response = await Http.GetFromJsonAsync<ApiResponse>("https://ecomm-intern-demo.onrender.com/api/viewProfile");
+
+            if (response?.Status == "Success" && response.Data != null)
+            {
+                var profile = response.Data;
+                user.Name = profile.Name;
+                user.Email = profile.Email;
+                user.Phone = profile.PhoneNumber;
+                user.AddressLine1 = profile.Address?.AddressLine1 ?? "";
+                user.City = "";
+                user.State = "";
+                user.ZipCode = profile.Address?.PostalCode.ToString() ?? "";
+                user.Country = "";
+
+                ProfileImageUrl = ExtractImageUrl(profile.ProfileImage) ?? "https://randomuser.me/api/portraits/lego/1.jpg";
+            }
+
+            // ✅ Get Orders
+            var orderResponse = await Http.PostAsJsonAsync("https://ecomm-intern-demo.onrender.com/api/order/listOfUserOrder", new { });
+            var orderResult = await orderResponse.Content.ReadFromJsonAsync<OrderApiResponse>();
+
+            if (orderResult?.Status == "Success" && orderResult.Data?.Orders != null)
+            {
+                orders = orderResult.Data.Orders.Select(o => new Order
+                    {
+                        OrderNumber = o.OrderName,
+                        OrderDate = o.CreatedAt,
+                        Total = o.TotalPrice,
+                        Status = o.Status
+                    }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert("Error loading profile/orders: " + ex.Message, "alert-danger");
+        }
+    }
+
+    private string ExtractImageUrl(string profileImageString)
+    {
+        if (string.IsNullOrWhiteSpace(profileImageString))
+            return null;
+
+        var start = profileImageString.IndexOf("[");
+        var end = profileImageString.IndexOf("]");
+        if (start >= 0 && end > start)
+        {
+            var filename = profileImageString.Substring(start + 1, end - start - 1).Trim();
+            filename = filename.Trim('\"', '\'');
+            return $"https://ecomm-intern-demo.onrender.com/uploads/{filename}";
+        }
+        return null;
+    }
+
+    private string GetStatusColor(string status) => status.ToLower() switch
+    {
+        "delivered" => "success",
+        "shipped" => "secondary",
+        "pending" => "warning",
+        _ => "primary"
+    };
+
+    private Task SaveProfile() => Task.CompletedTask;
+
+    private async Task ShowAlert(string message, string alertClass)
+    {
+        await JS.InvokeVoidAsync("alert", message);
+    }
+
+    // ===== MODELS =====
+    private class ApiResponse
+    {
+        public int StatusCode { get; set; }
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public ProfileData Data { get; set; }
+    }
+
+    private class ProfileData
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Gender { get; set; }
+        public string ProfileImage { get; set; }
+        public string Role { get; set; }
+        public AddressData Address { get; set; }
+    }
+
+    private class AddressData
+    {
+        public int Id { get; set; }
+        public int CountryId { get; set; }
+        public int StateId { get; set; }
+        public int CityId { get; set; }
+        public int PostalCode { get; set; }
+        public string Label { get; set; }
+        public bool HomeAddress { get; set; }
+        public string AddressLine1 { get; set; }
+        public string AddressLine2 { get; set; }
+    }
+
+    private class User
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string AddressLine1 { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string ZipCode { get; set; }
+        public string Country { get; set; }
+    }
+
+    // Orders API Models
+    private class OrderApiResponse
+    {
+        public int StatusCode { get; set; }
+        public string Status { get; set; }
+        public OrderData Data { get; set; }
+    }
+
+    private class OrderData
+    {
+        public List<OrderDto> Orders { get; set; }
+    }
+
+
+private class OrderDto
+    {
+    public int Id { get; set; }
+
+    [JsonPropertyName("order_name")]
+    public string OrderName { get; set; }
+
+    [JsonPropertyName("status")]
+    public string Status { get; set; }
+
+    [JsonPropertyName("createdAt")]
+    public DateTime CreatedAt { get; set; }
+
+    [JsonPropertyName("total_price")]
+    public decimal TotalPrice { get; set; }
+    }
+
+
+    private class Order
+    {
+        public string OrderNumber { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal Total { get; set; }
+        public string Status { get; set; }
+    }
+}

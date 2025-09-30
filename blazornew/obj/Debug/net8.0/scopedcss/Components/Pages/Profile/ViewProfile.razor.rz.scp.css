@@ -1,0 +1,15 @@
+.profile-img[b-cc8ilwqly2] {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.card[b-cc8ilwqly2] {
+    border-radius: 10px;
+}
+
+.badge[b-cc8ilwqly2] {
+    font-size: 0.85rem;
+    padding: 0.5em 0.75em;
+}

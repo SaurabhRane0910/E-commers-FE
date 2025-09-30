@@ -1,8 +1,9 @@
 ﻿@inject HttpClient Http
 
 <div class="container mt-4">
+    @if(showCategory){
     <h4 class="text-center mb-4 headingText">Shop by Category</h4>
-
+    }
     @if (categories != null && categories.Any())
     {
         <div class="category-scroll">
@@ -26,7 +27,8 @@
 
 @code {
     private List<Category> categories;
-
+    [Parameter] public bool IsProductsPage { get; set; } = true;
+    [Parameter] public bool showCategory { get; set; } = true;
     protected override async Task OnInitializedAsync()
     {
         var requestBody = new { };

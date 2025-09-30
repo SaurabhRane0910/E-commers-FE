@@ -1,0 +1,317 @@
+/* Container */
+/*.container {
+    max-width: 1200px;
+    margin: auto;
+}*/
+
+/* Card */
+/*.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+.card-img-top {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}*/
+
+/* Heading */
+/*.headingText {
+    margin-top: 40px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+}*/
+
+/* Alerts */
+/*.fixed-alert-container,
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 250px;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.alert-primary {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+}
+
+.alert-warning {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+}
+
+.alert-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.btn-close {
+    filter: invert(1);
+}*/
+
+/* Variant Cards in Modal */
+/*.variant-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .variant-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }*/
+
+/* Modal */
+/*.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    border-radius: 12px;
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+.modal-body {
+    max-height: 500px;
+    overflow-y: auto;
+}*/
+
+/* Buttons */
+/*.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+}
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+    }
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+}
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+.headingText {
+    margin-top: 40px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+}*/
+
+
+
+/* Container */
+.container[b-7eftsdi3rb] {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 15px; /* Add padding for small screens */
+}
+
+/* Card */
+.card[b-7eftsdi3rb] {
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+    .card:hover[b-7eftsdi3rb] {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+.card-img-top[b-7eftsdi3rb] {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Heading */
+.headingText[b-7eftsdi3rb] {
+    margin-top: 40px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Alerts */
+.fixed-alert-container[b-7eftsdi3rb],
+.alert[b-7eftsdi3rb] {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 250px;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.alert-primary[b-7eftsdi3rb] {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+}
+
+.alert-warning[b-7eftsdi3rb] {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+}
+
+.alert-danger[b-7eftsdi3rb] {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.btn-close[b-7eftsdi3rb] {
+    filter: invert(1);
+}
+
+/* Variant Cards in Modal */
+.variant-card[b-7eftsdi3rb] {
+    border-radius: 12px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .variant-card:hover[b-7eftsdi3rb] {
+        transform: translateY(-3px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+/* Modal */
+.modal-backdrop[b-7eftsdi3rb] {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content[b-7eftsdi3rb] {
+    border-radius: 12px;
+}
+
+.modal-header[b-7eftsdi3rb] {
+    border-bottom: none;
+}
+
+.modal-title[b-7eftsdi3rb] {
+    font-weight: bold;
+}
+
+.modal-body[b-7eftsdi3rb] {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Buttons */
+.btn-primary[b-7eftsdi3rb] {
+    background-color: #0d6efd;
+    border: none;
+}
+
+    .btn-primary:hover[b-7eftsdi3rb] {
+        background-color: #0b5ed7;
+    }
+
+.btn-outline-secondary[b-7eftsdi3rb] {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+}
+
+    .btn-outline-secondary:hover[b-7eftsdi3rb] {
+        background-color: #6c757d;
+        color: white;
+    }
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Small screens (mobile) */
+@media (max-width: 576px) {
+    .headingText[b-7eftsdi3rb] {
+        font-size: 22px;
+    }
+
+    .card-img-top[b-7eftsdi3rb] {
+        height: 150px; /* Smaller images for small screens */
+    }
+
+    .alert[b-7eftsdi3rb] {
+        top: 10px;
+        right: 10px;
+        min-width: 200px;
+        font-size: 12px;
+    }
+
+    .modal-body[b-7eftsdi3rb] {
+        max-height: 400px;
+    }
+
+    .form-control.w-25[b-7eftsdi3rb] {
+        width: 100% !important; /* Search bar full width on mobile */
+        margin-bottom: 10px;
+    }
+
+    .form-select.w-auto[b-7eftsdi3rb] {
+        width: 100% !important;
+    }
+
+    .d-flex.justify-content-between.mb-3[b-7eftsdi3rb] {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Medium screens (tablets) */
+@media (min-width: 577px) and (max-width: 768px) {
+    .headingText[b-7eftsdi3rb] {
+        font-size: 26px;
+    }
+
+    .card-img-top[b-7eftsdi3rb] {
+        height: 180px;
+    }
+
+    .form-control.w-25[b-7eftsdi3rb] {
+        width: 50% !important;
+    }
+}
+
+/* Large screens (desktop) */
+@media (min-width: 769px) {
+    .headingText[b-7eftsdi3rb] {
+        font-size: 30px;
+    }
+}

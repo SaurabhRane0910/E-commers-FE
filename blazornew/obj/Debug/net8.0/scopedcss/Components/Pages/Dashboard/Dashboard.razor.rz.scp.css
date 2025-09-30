@@ -1,4 +1,4 @@
-﻿.fullpage-image {
+.fullpage-image[b-9wtzrmli65] {
     width: 100%;
     height: calc(100vh - 70px);
     position: relative;
@@ -6,7 +6,7 @@
 }
 
     
-    .fullpage-image img {
+    .fullpage-image img[b-9wtzrmli65] {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -16,7 +16,7 @@
     }
 
    
-    .fullpage-image::before {
+    .fullpage-image[b-9wtzrmli65]::before {
         content: "";
         position: absolute;
         top: 0;
@@ -28,7 +28,7 @@
     }
 
 
-.overlay-content {
+.overlay-content[b-9wtzrmli65] {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -38,17 +38,17 @@
     color: #fff; 
 }
 
-    .overlay-content h1 {
+    .overlay-content h1[b-9wtzrmli65] {
         font-size: 3rem;
         margin-bottom: 15px;
     }
 
-    .overlay-content p {
+    .overlay-content p[b-9wtzrmli65] {
         font-size: 1.2rem;
         margin-bottom: 20px;
     }
 
-    .overlay-content .btn {
+    .overlay-content .btn[b-9wtzrmli65] {
         font-size: 1rem;
         padding: 10px 20px;
     }

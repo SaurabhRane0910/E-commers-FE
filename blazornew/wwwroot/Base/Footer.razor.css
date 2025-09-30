@@ -1,6 +1,4 @@
-﻿/* ---------- Responsive Footer (works on any screen) ---------- */
-
-/* Footer container */
+﻿
 .footer .container {
     display: flex !important;
     align-items: center;
@@ -9,7 +7,10 @@
     flex-wrap: wrap;
     padding: 0 16px;
     box-sizing: border-box;
+   
 }
+
+
 
 /* Footer links */
 .footer-links {
@@ -35,7 +36,7 @@
             outline: none;
         }
 
-/* Social icons */
+
 .footer-social {
     display: flex;
     align-items: center;
@@ -64,21 +65,18 @@
             outline: none;
         }
 
-        /* Make sure icons remain clickable */
+       
         .footer-social a > * {
             pointer-events: none;
         }
 
-/* Optional: small print */
 .footer-small {
     color: #666;
     font-size: 13px;
     margin-top: 8px;
 }
 
-/* ---------- Breakpoints ---------- */
 
-/* Medium (tablets) */
 @media (max-width: 992px) {
     .footer-links {
         gap: 14px;
@@ -91,7 +89,7 @@
     }
 }
 
-/* Small (mobiles) */
+
 @media (max-width: 768px) {
     .footer .container {
         flex-direction: column;
@@ -120,7 +118,7 @@
     }
 }
 
-/* Extra small (phones) */
+
 @media (max-width: 480px) {
     .footer {
         padding: 10px 0;
@@ -137,14 +135,19 @@
     }
 }
 
-/* Smooth rendering */
+
 .footer, .header {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-    /* Accessibility */
+    
     .footer a:focus {
         box-shadow: 0 0 0 3px rgba(74,74,255,0.12);
         border-radius: 6px;
     }
+
+
+
+
+

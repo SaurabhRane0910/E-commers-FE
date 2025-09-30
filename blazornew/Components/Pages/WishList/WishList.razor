@@ -1,0 +1,247 @@
+﻿@page "/wishlist"
+
+<Header />
+
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="container mt-4">
+
+    <!-- ✅ Alert UI -->
+    <div style="position:fixed; top:20px; right:20px; z-index:1050;">
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @alertClass alert-dismissible fade show shadow" role="alert">
+                @alertMessage
+                <button type="button" class="btn-close" @onclick="() => alertMessage = null"></button>
+            </div>
+        }
+    </div>
+
+    @if (wishlist != null && wishlist.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in wishlist)
+            {
+                var variant = item.ProductVariant;
+                if (variant != null)
+                {
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="card h-100">
+                            <img src="@GetImageUrl(variant.Image?.ImagePath)"
+                                 class="card-img-top"
+                                 alt="@variant.ProductTitleName"
+                                 onerror="this.onerror=null;this.src='/bootstrap/lock.jpg';" />
+
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">@variant.ProductTitleName</h6>
+                                <p class="text-primary fw-bold">₹@variant.Price</p>
+
+                                <div class="mt-auto d-flex flex-column gap-2">
+                                    <button class="btn btn-primary btn-sm"
+                                            @onclick="async () => await AddToCart(variant.ProductId, variant.Id)">
+                                        Move to Cart
+                                    </button>
+
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="async () => await RemoveFromWishlist(item.Id)">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center my-5">
+            <img src="/bootstrap/NoDataFound.png" alt="No items in wishlist" class="img-fluid" style="max-width: 300px;" />
+            <p class="mt-3 fw-bold text-muted">Your wishlist is empty!</p>
+        </div>
+    }
+</div>
+<Footer />
+@code {
+    private List<WishlistItem> wishlist = new();
+
+    // Alert state
+    private string alertMessage;
+    private string alertClass;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWishlist();
+    }
+
+    private async Task LoadWishlist()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                Http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var requestBody = new { page = 1, pageSize = 50 };
+            var httpResponse = await Http.PostAsJsonAsync("wishlist/listOfWishlist", requestBody);
+
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var rawJson = await httpResponse.Content.ReadAsStringAsync();
+                var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                var apiResponse = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<ApiData>>(rawJson, options);
+
+                wishlist = apiResponse?.Data?.Wishlist ?? new List<WishlistItem>();
+            }
+            else
+            {
+                await ShowAlert($"Failed to load wishlist: {httpResponse.StatusCode}", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error loading wishlist: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private async Task RemoveFromWishlist(int wishlistId)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"wishlist/deleteWishlist/{wishlistId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                wishlist = wishlist.Where(w => w.Id != wishlistId).ToList();
+                await ShowAlert("Removed from wishlist", "alert-success");
+            }
+            else
+            {
+                await ShowAlert("Failed to remove from wishlist", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private async Task AddToCart(int productId, int variantId)
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                await ShowAlert("Please login to add items to cart.", "alert-warning");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var requestBody = new
+            {
+                cart_items = new[] { new { product_id = productId, product_variant_id = variantId, quantity = 1 } }
+            };
+
+            var response = await Http.PostAsJsonAsync("cart/addToCart", requestBody);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await ShowAlert("Moved to cart successfully!", "alert-success");
+                // remove from wishlist after adding to cart
+                wishlist = wishlist.Where(w => !(w.ProductVariant.ProductId == productId && w.ProductVariant.Id == variantId)).ToList();
+            }
+            else
+            {
+                await ShowAlert("Failed to move to cart.", "alert-danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error: {ex.Message}", "alert-danger");
+        }
+    }
+
+    private string GetImageUrl(string imageName) =>
+        string.IsNullOrWhiteSpace(imageName)
+            ? "/bootstrap/lock.jpg"
+            : $"https://ecomm-intern-demo.onrender.com/uploads/{imageName}";
+
+
+    private async Task ShowAlert(string message, string cssClass)
+    {
+        alertMessage = message;
+        alertClass = cssClass;
+        StateHasChanged();
+
+        await Task.Delay(3000);
+        alertMessage = null;
+        StateHasChanged();
+    }
+
+
+    public class ApiResponse<T>
+    {
+        public int StatusCode { get; set; }
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public T Data { get; set; }
+    }
+
+    public class ApiData
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("wishlist")]
+        public List<WishlistItem> Wishlist { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPage { get; set; }
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int NumberOfRows { get; set; }
+    }
+
+    public class WishlistItem
+    {
+        public int Id { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("user_id")]
+        public int UserId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("product_variant_id")]
+        public int ProductVariantId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("product_variant")]
+        public ProductVariant ProductVariant { get; set; }
+    }
+
+    public class ProductVariant
+    {
+        public int Id { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("product_id")]
+        public int ProductId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("product_title_name")]
+        public string ProductTitleName { get; set; }
+
+        public string Color { get; set; }
+        public decimal Price { get; set; }
+        public ProductImage Image { get; set; }
+    }
+
+    public class ProductImage
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("image_path")]
+        public string ImagePath { get; set; }
+    }
+}
